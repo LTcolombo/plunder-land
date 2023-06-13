@@ -19,6 +19,7 @@
     "performance-now": "^2.1.0",
     "socket.io": "^4.5.4",
     "socket.io-parser": "^4.2.1",
+    "swc": "^1.0.11",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0"
   },
