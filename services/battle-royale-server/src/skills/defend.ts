@@ -11,7 +11,7 @@ export class Defend extends Skill {
     if (!super.execute()) return false
 
     // set damage reduction to
-    this.owner.damageReduction = World.config.defend[this.owner.level]
+    this.owner.damageReduction = World.config.defend
 
     const lifetime = 5000
     Multiplayer.Instance.effect(4, this.owner, lifetime)

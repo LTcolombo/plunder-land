@@ -1,4 +1,4 @@
-import { ProgressBar } from '../ui/progressbar'
+import { ProgressBar } from '../ui/elements/progressbar'
 import {
   Texture,
   AnimatedSprite,
@@ -9,7 +9,7 @@ import {
 } from 'pixi.js'
 import { Vector } from '../utils/vector'
 import { GameObject } from './gameobject'
-import { TextEffect } from '../ui/texteffect'
+import { TextEffect } from '../ui/elements/texteffect'
 
 export default class Mob extends GameObject {
   animationSprite: AnimatedSprite

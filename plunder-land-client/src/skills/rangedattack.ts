@@ -10,7 +10,7 @@ export class RangedAttack extends Skill {
     this.cooldown = 0.5
   }
 
-  execute () {
+  execute (): void {
     super.execute()
     this.owner.animation?.playClip('player/shoot/shot')
   }

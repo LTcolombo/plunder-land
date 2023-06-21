@@ -1,35 +1,37 @@
+/* eslint-disable no-new */
 import {
   TilingSprite,
   Texture,
   Text,
   Container,
   Graphics,
-  Point,
   type Renderer,
   Assets
 } from 'pixi.js'
-import { TextEffect } from './ui/texteffect'
+import { TextEffect } from './ui/elements/texteffect'
 import { Consumable } from './objects/consumable'
 import { Obstacle } from './objects/obstacle'
 import { Vector } from './utils/vector'
-import { Timer } from './ui/timer'
+import { Timer } from './ui/elements/timer'
 import { type Throwable } from './objects/throwable'
 import { Portal } from './objects/portal'
 import TWEEN from '@tweenjs/tween.js'
 import { CloudsLayer } from './objects/cloudslayer'
 import Mob from './objects/mob'
 import Player from './objects/player'
-import GameEnterPopup from './popups/gameenterpopup'
+import GameEnterPopup from './ui/popups/gameenterpopup'
 
-import { FireBreathEffect } from './vfx/firebreatheffect'
-import { IceBreathEffect } from './vfx/icebreatheffect'
-import { MeleeAttackEffect } from './vfx/meleeattackeffect'
-import { RangedAttackEffect } from './vfx/rangedattackeffect'
-import { DefendEffect } from './vfx/defendeffect'
+import { FireBreathEffect } from './vfx/firebreath.effect'
+import { IceBreathEffect } from './vfx/icebreath.effect'
+import { MeleeAttackEffect } from './vfx/meleeattack.effect'
+import { RangedAttackEffect } from './vfx/rangedattack.effect'
+import { DefendEffect } from './vfx/defend.effect'
 import { type GameObject } from './objects/gameobject'
-import { type HUD } from './ui/hud'
+import { type HUD } from './ui/components/hud'
 import { type Socket } from 'socket.io-client'
-import { type PopupManager } from './popups/popupmanager'
+import { type PopupManager } from './ui/popups/popupmanager'
+import { TokenService } from './services/token.service'
+import { ToolKit } from './ui/components/toolkit'
 
 export class Game extends Container {
   mapSize: number
@@ -51,27 +53,33 @@ export class Game extends Container {
   static popups: PopupManager
   static Instance: Game
   static simulate: boolean
+  assets: TokenService
+  static loader: any
 
   constructor () {
     super()
     this.mapSize = 4000
+
+    this.assets = new TokenService()
   }
 
-  clear () {
+  clear (): void {
     if (this.layers != null) {
-      for (const layer of this.layers) { while (layer && layer.children.length > 0) layer.removeChildAt(0) }
+      for (const layer of this.layers) {
+        if (layer !== null) { while (layer.children.length > 0) layer.removeChildAt(0) }
+      }
     }
 
-    while (Game.CONTAINER && Game.CONTAINER.children.length > 0) { Game.CONTAINER.removeChildAt(0) }
+    while (Game.CONTAINER !== undefined && Game.CONTAINER.children.length > 0) { Game.CONTAINER.removeChildAt(0) }
   }
 
   createLayer (tex: Texture, size: number): TilingSprite {
     const res = new TilingSprite(tex, size, size)
-    res.anchor = new Point(0, 0)
+    res.anchor = ToolKit.TOP_LEFT_ANCHOR
     return res
   }
 
-  start () {
+  start (): void {
     this.clear()
 
     // todo remove static accessors
@@ -82,15 +90,15 @@ export class Game extends Container {
     Game.MOBS = []
 
     // main container
-    if (!Game.CONTAINER) {
+    if (Game.CONTAINER === undefined) {
       Game.CONTAINER = new Container()
       this.addChild(Game.CONTAINER)
     }
     // map
     this.tags = [-1, 0, 1]
     this.layers = [
-      this.createLayer(Texture.from('ground.png'), this.mapSize),
-      this.createLayer(Texture.from('grass.png'), this.mapSize),
+      this.createLayer(Texture.from('tiles/ground.png'), this.mapSize),
+      this.createLayer(Texture.from('tiles/grass.png'), this.mapSize),
       new Container()
     ]
 
@@ -109,25 +117,26 @@ export class Game extends Container {
     Game.socket.off('effect')
     Game.socket.off('update')
     Game.socket.off('destroy')
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     Game.popups.show(new GameEnterPopup(this.onStartRequested.bind(this)))
   }
 
-  onStartRequested () {
+  async onStartRequested (address: string): Promise<void> {
     Game.socket.on('create', this.onObjectsCreated.bind(this))
     Game.socket.on('create_own', this.onOwnObjectsCreated.bind(this))
     Game.socket.on('effect', this.onEffects.bind(this))
     Game.socket.on('update', this.onObjectsUpdated.bind(this))
     Game.socket.on('destroy', this.onObjectsDestroyed.bind(this))
-    Game.socket.emit('start_requested')
+    Game.socket.emit('start_requested', address)
 
     Game.hud.setupGameUI()
   }
 
-  onObjectsCreated (data: ArrayBuffer[]) {
+  onObjectsCreated (data: ArrayBuffer[]): void {
     for (const entry of data) this.onObjectCreated(entry)
   }
 
-  onOwnObjectsCreated (data: ArrayBuffer[]) {
+  onOwnObjectsCreated (data: ArrayBuffer[]): void {
     for (const entry of data) this.onObjectCreated(entry, true)
   }
 
@@ -222,21 +231,24 @@ export class Game extends Container {
     const data = this.deserialiseBinary(raw)
 
     switch (data.type) {
-      case 1:
-        var sheet = Assets.get('./res/atlas.json')
-        var frames =
-          sheet.data.animations[
-            data.tag == 0
-              ? data.radius < 20
-                ? 'obstacle_1/obstacle'
-                : 'tree/tree'
-              : 'obstacle_0/prop'
-          ]
-        var tex = Texture.from(
+      case 1: {
+        const sheet = Assets.get('./res/atlas.json')
+        const frames =
+            sheet.data.animations[
+              data.tag === 0
+                ? data.radius < 20
+                  ? 'obstacle_1_sm/obj'
+                  : 'obstacle_1_lg/obj'
+                : data.radius < 20
+                  ? 'obstacle_0_sm/obj'
+                  : 'obstacle_0_lg/obj'
+            ]
+        const tex = Texture.from(
           frames[Math.floor(frames.length * Math.random())]
         )
         obj = new Obstacle(tex, data.radius)
         Game.OBSTACLES.push(obj)
+      }
         break
 
       case 1 << 4:
@@ -255,46 +267,50 @@ export class Game extends Container {
         obj = new Portal(data.radius, data.to > data.tag)
         break
 
-      case 1 << 1:
-        var sheet = Assets.get('./res/atlas.json')
-        var frames = sheet.data.animations['resource/resource']
-        var tex = Texture.from(
+      case 1 << 1:{
+        const sheet = Assets.get('./res/atlas.json')
+        const frames = sheet.data.animations['resource/resource']
+        const tex = Texture.from(
           frames[Math.floor(frames.length * Math.random())]
         )
         const consumable = new Consumable(tex, data.radius, data.radius)
         Game.CONSUMABLES.push(consumable)
         obj = consumable
-        break
 
-      case 1 << 2:
+        break
+      }
+
+      case 1 << 2:{
         const player = new Player()
         player.init()
         player.setHP(data.hp)
         Game.PLAYERS.push(player)
         obj = player
+
         break
+      }
     }
 
     if (obj === undefined) return
 
-    if (data.maxVelocity) (obj as any).maxVelocity = data.maxVelocity
+    if (data.maxVelocity !== undefined) (obj as any).maxVelocity = data.maxVelocity
 
     if (own) {
       Game.PLAYER = obj as Player
 
-      Game.hud.setupStats(data)
+      Game.hud.setupStats()
       Game.hud.setupSkills(Game.PLAYER.skills)
 
       console.log(data)
       this.updateLayerVisibility(data.tag)
     }
 
-    if (data.lifetime) {
+    if (data.lifetime !== undefined) {
       obj.addChild(new Timer(data.lifetime / 1000))
       if (obj.main != null) obj.main.tint = 0xffbb00
     }
 
-    if (data.name) {
+    if (data.name !== undefined) {
       const label = new Text(data.name, {
         fontFamily: '"Trebuchet MS", Helvetica, sans-serif',
         fontSize: 10,
@@ -319,7 +335,7 @@ export class Game extends Container {
       obj.addChild(name)
     }
 
-    if (data.position) {
+    if (data.position !== undefined) {
       obj.x = data.position.x
       obj.y = data.position.y
     }
@@ -328,7 +344,7 @@ export class Game extends Container {
 
     if ((this.layers != null) && (this.tags != null)) { this.layers[this.tags.indexOf(obj.tag ?? 0)].addChild(obj) }
 
-    if (data.radius && obj.radius !== data.radius) {
+    if (data.radius !== undefined && obj.radius !== data.radius) {
       obj.radius = data.radius
       obj.DEBUG_DRAW_COLLIDER()
     }
@@ -336,12 +352,12 @@ export class Game extends Container {
     this.LOOKUP[data.id] = obj
   }
 
-  overflow (value: number, limit: number) {
+  overflow (value: number, limit: number): number {
     if (value >= limit) value -= 2 * limit
     return value
   }
 
-  updateLayerVisibility (tag: number) {
+  updateLayerVisibility (tag: number): void {
     if ((this.layers == null) || (this.tags == null)) return
 
     for (const layer of this.layers) {
@@ -386,7 +402,7 @@ export class Game extends Container {
     const lifetime = buffer[offset++] * 100
 
     const target = this.LOOKUP[targetid]
-    if (!target) {
+    if (target === undefined) {
       console.warn('target not found for effect', buffer)
       return
     }
@@ -451,7 +467,7 @@ export class Game extends Container {
           obj.x,
           obj.y,
           24,
-          'teal',
+          'green',
           400
         )
         obj.xp = data.xp
@@ -494,7 +510,7 @@ export class Game extends Container {
     }
   }
 
-  update (dt: number) {
+  update (dt: number): void {
     for (const obj of Game.OBSTACLES) {
       obj.update(dt)
     }

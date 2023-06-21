@@ -26,7 +26,7 @@ export default class Mob extends Unit {
     return 10
   }
 
-  onCollideWithPlayer (target) {
+  onCollideWithPlayer (target: Unit): void {
     if (this.canAttack) {
       setTimeout(() => { this.canAttack = true }, Mob.Cooldown)
 

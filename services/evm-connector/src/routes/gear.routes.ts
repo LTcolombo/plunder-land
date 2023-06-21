@@ -1,8 +1,9 @@
 import { AuroraTestnet } from '@thirdweb-dev/chains'
 import { type NFT } from '@thirdweb-dev/sdk'
 import { type BaseERC1155 } from '@thirdweb-dev/sdk/dist/declarations/src/evm/types/eips'
-import { ThirdwebSDK, type Erc1155 } from '@thirdweb-dev/sdk/evm'
+import { ThirdwebSDK, type Erc1155, type TransactionResultWithId } from '@thirdweb-dev/sdk/evm'
 import { Router, type Request, type Response } from 'express'
+import { GEAR_PRESET_METADATA } from '../data/metadata.presets'
 
 type GearBoost = Record<'damage' | 'armor' | 'speed', number>
 
@@ -14,18 +15,27 @@ export class GearRoutes {
     if (this._router == null) {
       this._router = Router()
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this._router.get('/balance/:id', async (req: Request, res: Response) => {
+      this._router.get('/balance/:address', async (req: Request, res: Response) => {
         try {
-          res.json(await this.getBalance(req.params.id))
+          res.json(await this.getBalance(req.params.address))
         } catch (e: any) {
           res.status(500).send(e.message)
         }
       })
 
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this._router.get('/equipment/:id', async (req: Request, res: Response) => {
+      this._router.post('/mint/:address', async (req: Request, res: Response) => {
         try {
-          res.json(await this.equipment(req.params.id))
+          res.json(await this.mint(req.params.address))
+        } catch (e: any) {
+          res.status(500).send(e.message)
+        }
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      this._router.get('/equipment/:address', async (req: Request, res: Response) => {
+        try {
+          res.json(await this.equipment(req.params.address))
         } catch (e: any) {
           res.status(500).send(e.message)
         }
@@ -37,21 +47,18 @@ export class GearRoutes {
 
   private async lazyInit (): Promise<void> {
     // throw somethign if needed
-    if (this.contract === undefined) {
-      const sdk = new ThirdwebSDK(AuroraTestnet)
+    if (this.contract === undefined && process.env.PRIVATE_KEY !== undefined) {
+      const sdk = ThirdwebSDK.fromPrivateKey(process.env.PRIVATE_KEY, AuroraTestnet)
       this.contract = (await sdk.getContract('0x01c25BecA7B2548367d440FEBC11092446615AF4')).erc1155
     }
   }
 
   private async getBalance (address: string): Promise<NFT[]> {
     await this.lazyInit()
-
-    console.log('gear:balanceOf', address)
     return await this.contract.getOwned(address)
   }
 
   async equipment (address: string): Promise<GearBoost> {
-    console.log('gear:equipment', address)
     const nfts = await this.getBalance(address)
 
     const result: GearBoost = {
@@ -76,9 +83,25 @@ export class GearRoutes {
   attributesToMap (attributes: Array<{ trait_type: string, value: string }>): Record<string, number> {
     const result = {}
     for (const attibute of attributes) {
-      result[attibute.trait_type] = attibute.value
+      result[attibute.trait_type] = parseInt(attibute.value)
     }
 
     return result
+  }
+
+  async mint (address: string): Promise<TransactionResultWithId<NFT>> {
+    await this.lazyInit()
+
+    console.log(address,
+      {
+        metadata: GEAR_PRESET_METADATA[Math.floor(Math.random() * GEAR_PRESET_METADATA.length)],
+        supply: 1
+      })
+
+    return await this.contract.mintTo(address,
+      {
+        metadata: GEAR_PRESET_METADATA[Math.floor(Math.random() * GEAR_PRESET_METADATA.length)],
+        supply: 1
+      })
   }
 }

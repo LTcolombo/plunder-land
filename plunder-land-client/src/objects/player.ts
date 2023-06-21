@@ -1,8 +1,8 @@
-import { ProgressBar } from '../ui/progressbar'
+import { ProgressBar } from '../ui/elements/progressbar'
 import { type Texture, Sprite, Point, ColorMatrixFilter } from 'pixi.js'
 import { Vector } from '../utils/vector'
 import { GameObject } from './gameobject'
-import { TextEffect } from '../ui/texteffect'
+import { TextEffect } from '../ui/elements/texteffect'
 import { Dash } from '../skills/dash'
 import { MeleeAttack } from '../skills/meleeattack'
 import { type RangedAttack } from '../skills/rangedattack'
@@ -84,15 +84,24 @@ export default class Player extends GameObject {
     this.setLevel(1)
   }
 
-  maxHP () {
-    return [120, 180, 250, 350][this.level]
-  }
+  maxHP: number = 0
 
-  setHP (value: number) {
+  setHP (value: number): void {
+    if (this.maxHP === 0) {
+      this.maxHP = value
+
+      if (this.progressBar !== undefined) {
+        this.progressBar.width = this.maxHP
+        this.progressBar.graphics.x = -this.progressBar.width / 2
+        this.progressBar.graphics.y = this.radius + 5
+      }
+    }
+
     if (this.hp === value) return
-
-    if (this.hp && this.visible && this.parent && value < this.hp) {
-      new TextEffect(
+    if (this.hp !== undefined) {
+      if (this.visible && this.parent !== null && value < this.hp) {
+      // eslint-disable-next-line no-new
+        new TextEffect(
         `${value - this.hp}`,
         this.parent,
         this.x,
@@ -100,15 +109,16 @@ export default class Player extends GameObject {
         24,
         'red',
         400
-      )
+        )
+      }
     }
 
     this.hp = value
-    this.progressBar?.setValue(this.hp / this.maxHP())
+    this.progressBar?.setValue(this.hp / this.maxHP)
   }
 
-  getNextPos (dt: number) {
-    if (!this.maxVelocity || (this.direction == null)) return new Vector(this.x, this.y)
+  getNextPos (dt: number): Vector {
+    if (this.maxVelocity === undefined || (this.direction == null)) return new Vector(this.x, this.y)
     const translate = this.direction
       .add(this.impulse)
       .normalised()
@@ -116,15 +126,15 @@ export default class Player extends GameObject {
     return new Vector(this.x + translate.x, this.y + translate.y)
   }
 
-  getDirectionTo (target_x: number, target_y: number) {
+  getDirectionTo (target_x: number, target_y: number): Vector {
     return new Vector(target_x - this.x, target_y - this.y).normalised()
   }
 
-  setDirectionTo (target_x: number, target_y: number) {
+  setDirectionTo (target_x: number, target_y: number): void {
     this.direction = this.getDirectionTo(target_x, target_y)
   }
 
-  setDirection (x: number, y: number) {
+  setDirection (x: number, y: number): void {
     if (!(x || y)) {
       stop()
       return
@@ -164,37 +174,28 @@ export default class Player extends GameObject {
     }
   }
 
-  moveToTarget () {
+  moveToTarget (): void {
     // rotate
 
     if ((this.animation != null) && (this.direction != null)) {
       this.animation.scale.x = this.direction.x < 0 ? -1 : 1
-	  this.shadow.scale = new Point(this.animation.scale.x * 1.1, this.animation.scale.y * 1.1)
+      this.shadow.scale = new Point(this.animation.scale.x * 1.1, this.animation.scale.y * 1.1)
     }
 
     // translate
-    if (this.moveTarget?.x) {
+    if (this.moveTarget?.x !== undefined) {
       const damper = (this.direction != null) ? 4 : 1
       this.x += (this.moveTarget.x - this.x) / damper
       this.y += (this.moveTarget.y - this.y) / damper
     }
   }
 
-  setLevel (value: number) {
+  setLevel (value: number): void {
     if (this.level === value) return
     this.level = value
-    this.hp = this.maxHP()
-    if ((this.progressBar == null) || (this.animation == null)) return
-
-    const size = 50
-
-    this.progressBar.width = size / 2
-    this.progressBar.graphics.x = -this.progressBar.width / 2
-    this.progressBar.graphics.y = size / 2
-    this.progressBar.setValue(this.hp / this.maxHP())
   }
 
-  destroy () {
+  destroy (): void {
     this.animation?.playClip('player/die/die')
     this.animation?.setDefault(undefined)
 

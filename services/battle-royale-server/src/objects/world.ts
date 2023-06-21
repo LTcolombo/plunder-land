@@ -20,12 +20,12 @@ export default class World {
   static AREA_EFFECT: Area[] = []
 
   static config = {
-    damage: [25, 35, 45, 60],
-    defend: [0.4, 0.55, 0.65, 0.7],
-    fire: [25, 35, 45, 50],
-    hp: [120, 180, 250, 350],
-    melee: [40, 50, 70, 100],
-    ranged: [20, 25, 35, 50]
+    damage: 10,
+    defend: 0,
+    fire: 15,
+    hp: 50,
+    melee: 20,
+    ranged: 20
   }
 
   constructor (size: number) {
@@ -50,7 +50,7 @@ export default class World {
     return player
   }
 
-  update (dt) {
+  update (dt: number): void {
     for (let i = World.PLAYERS.length - 1; i >= 0; i--) {
       const player = World.PLAYERS[i]
       if (player.destroyed) {

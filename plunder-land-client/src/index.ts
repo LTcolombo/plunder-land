@@ -1,10 +1,12 @@
 import TWEEN from '@tweenjs/tween.js'
 import * as io from 'socket.io-client'
 import Stats from 'stats.js'
-import { PopupManager } from './popups/popupmanager'
+import { PopupManager } from './ui/popups/popupmanager'
 import { Game } from './game'
-import { HUD } from './ui/hud'
-import { Application, Assets, Point, settings } from 'pixi.js'
+import { HUD } from './ui/components/hud'
+import { Application, Assets, Point, type Renderer, settings } from 'pixi.js'
+import FontFaceObserver from 'fontfaceobserver'
+import { LoaderOverlay } from './ui/components/loaderoverlay'
 
 const stats = new Stats()
 const app = new Application()
@@ -12,26 +14,31 @@ const socketPanel = stats.addPanel(new Stats.Panel('b/s', '#ff8', '#221'))
 
 settings.ROUND_PIXELS = true
 
-start()
+const font = new FontFaceObserver('Lilliput Steps')
 
-function start () {
+void font.load().then(function () {
+  start()
+})
+
+function start (): void {
   Game.socketBytes = 0
   stats.showPanel(3) // 0: fps, 1: ms, 2: mb, 3+: custom
   document.body.appendChild(stats.dom)
 
-  document.body.appendChild(app.view)
+  document.body.appendChild(app.view as any)
 
-  app.view.style.width = '100%'
-  app.view.style.height = '100%'
-  app.stage.interactive = true
+  if (app.view.style !== undefined) {
+    app.view.style.width = '100%'
+    app.view.style.height = '100%'
+  }
 
-  Game.RENDERER = app.renderer
-  app.renderer.backgroundColor = 0
+  Game.RENDERER = app.renderer as Renderer
+  // app.renderer.backgroundColor = 0
 
-  Assets.load('./res/atlas.json').then(setup)
+  void Assets.load('./res/atlas.json').then(setup)
 }
 
-function setup () {
+function setup (): void {
   const host = 'localhost:8000'
 
   let url = `${window.location.protocol}//${host}`
@@ -49,31 +56,34 @@ function setup () {
   })
 }
 
-function onConnect () {
-  if (!Game.Instance) {
+function onConnect (): void {
+  app.stage.interactive = true
+
+  if (Game.Instance === undefined) {
     Game.Instance = new Game()
     app.stage.addChild(Game.Instance)
   }
 
-  if (!Game.hud) {
+  if (Game.hud === undefined) {
     Game.hud = new HUD()
     app.stage.addChild(Game.hud)
   }
 
-  if (Game.popups) {
+  if (Game.popups !== undefined) {
     Game.popups.removeChildren()
     app.stage.removeChild(Game.popups)
   }
   Game.popups = new PopupManager()
   app.stage.addChild(Game.popups)
 
+  Game.loader = new LoaderOverlay()
+  app.stage.addChild(Game.loader)
+
   Game.Instance.start()
 
-  if (true) {
-    app.stage.on('pointermove', updatePointer)
-    app.stage.on('pointerdown', updatePointer)
-    app.stage.on('pointerup', updatePointer)
-  }
+  app.stage.on('pointermove', updatePointer)
+  app.stage.on('pointerdown', updatePointer)
+  app.stage.on('pointerup', updatePointer)
 
   Game.simulate = false
   window.addEventListener(
@@ -114,10 +124,10 @@ let _socketDump = 0
 
 let maxSocketBytes = 1
 
-function frame () {
+function frame (): void {
   stats.begin()
   const now = Date.now()
-  if (_prevTime) {
+  if (_prevTime !== 0) {
     const dt = now - _prevTime
     Game.Instance.update(dt / 1000)
     Game.hud.update(dt / 1000)
@@ -136,8 +146,10 @@ function frame () {
   requestAnimationFrame(frame)
 }
 
-function onResize () {
+function onResize (): void {
   app.renderer.resize(window.innerWidth, window.innerHeight)
-  Game.Instance.x = window.innerWidth / 2
-  Game.Instance.y = window.innerHeight / 2
+  Game.loader.resize(window.innerWidth, window.innerHeight)
+
+  Game.popups.position = new Point(window.innerWidth / 2, window.innerHeight / 2)
+  Game.Instance.position = new Point(window.innerWidth / 2, window.innerHeight / 2)
 }

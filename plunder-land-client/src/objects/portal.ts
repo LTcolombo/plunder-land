@@ -1,5 +1,5 @@
 import { GameObject } from './gameobject'
-import { Sprite, Point, Texture } from 'pixi.js'
+import { Sprite, Point, Texture, ObservablePoint } from 'pixi.js'
 
 export class Portal extends GameObject {
   constructor (radius: number, up: boolean) {
@@ -11,7 +11,7 @@ export class Portal extends GameObject {
 
     this.main = new Sprite(texture)
     this.main.scale = new Point(targetScale, targetScale)
-    this.main.anchor = new Point(0.5, 0.5)
+    this.main.anchor = new ObservablePoint(() => {}, 0, 0.5, 0.5)
 
     if (!up) { this.main.rotation = Math.PI }
 

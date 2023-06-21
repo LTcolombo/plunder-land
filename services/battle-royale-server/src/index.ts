@@ -6,6 +6,8 @@ import Multiplayer from './network/multiplayer'
 import World from './objects/world'
 dotenv.config()
 
+startGame()
+
 function startGame () {
   const httpserver = http.createServer((req, res) => {
     res.writeHead(req.method === 'GET' && req.url === '/healthcheck' ? 200 : 404)
@@ -60,5 +62,3 @@ function startGame () {
 
   gameLoop()
 }
-
-startGame()

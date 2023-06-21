@@ -26,7 +26,7 @@ export class RangedAttack extends Skill {
       ObjectType.Player | ObjectType.Mob
     )) {
       if (collidee !== this.owner) {
-        if (collidee.hit(World.config.ranged[this.owner.level])) { this.owner.onKill(collidee) }
+        if (collidee.hit(World.config.ranged)) { this.owner.onKill(collidee) }
       }
     }
 

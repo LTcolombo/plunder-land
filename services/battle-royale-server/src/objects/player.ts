@@ -4,8 +4,6 @@ import { type GameObject, ObjectType } from './gameobject'
 import { Vector } from '../utils/vector'
 import Mob from './mob'
 import Boss from './boss'
-import { Defend } from '../skills/defend'
-import { RangedAttack } from '../skills/rangedattack'
 import { MeleeAttack } from '../skills/meleeattack'
 import { type Skill } from '../skills/skill'
 import World from './world'
@@ -35,61 +33,13 @@ export default class Player extends Unit {
     Multiplayer.Instance.create(this)
   }
 
-  setProfile (data) {
-    // this.profileData = data;
-
-    // if (!this.profileData.equipment)
-    //     return;
-
-    // var bestArmor = {
-    //     0: 0,
-    //     1: 0,
-    //     4: 0,
-    //     5: 0,
-    // }
-
-    // for (var slotId in this.profileData.equipment) {
-    //     var cardId = this.profileData.equipment[slotId];
-    //     var cardData = global.firebaseData.config[cardId];
-
-    //     if (!cardData) {
-    //         console.log(cardId);
-    //         continue;
-    //     }
-
-    //     var cardArmor = this.getArmorValue(cardData);
-    //     if (bestArmor[slotId] != undefined)
-    //         bestArmor[slotId] = cardArmor;
-    // }
-
-    // var armoredSlotCount = 0;
-    // var totalArmor = 0;
-    // for (var slot in bestArmor) {
-    //     totalArmor += bestArmor[slot];
-    //     armoredSlotCount++
-    // }
-
-    // var armoredSlotCount = 0;
-    // var totalArmor = 0;
-    // for (var slot in bestArmor) {
-    //     totalArmor += bestArmor[slot];
-    //     armoredSlotCount++
-    // }
-    // this.armor = Math.ceil(totalArmor / armoredSlotCount);
+  setGear (data: { damage: number, armor: number, speed: number }): void {
+    this.weapon = data.damage
+    this.armor = data.armor
+    this.maxVelocity = 180 + data.speed * 10
   }
 
-  // getArmorValue(card) {
-  //     if (!card.buffs)
-  //         return 0;
-
-  //     for (var buff of card.buffs) {
-  //         if (buff.param === "armor")
-  //             return buff.value;
-  //     }
-  //     return 0;
-  // }
-
-  update (dt: number) {
+  update (dt: number): void {
     super.update(dt)
 
     for (let i = 0; i < World.CONSUMABLES.length; i++) {
@@ -119,22 +69,11 @@ export default class Player extends Unit {
         this.position = new Vector(
           mob.position.x - sumWidth * delta.x / magnitude,
           mob.position.y - sumWidth * delta.y / magnitude)
-
-        // if (this.canAttack) {
-        //     setTimeout(() => {
-        //         this.canAttack = true;
-        //     }, 1000);
-
-        //     this.canAttack = false;
-
-        //     if (mob.hit(this.getDamage()))
-        //         this.onKill(mob);
-        // }
       }
     }
   }
 
-  addXP (value: number) {
+  addXP (value: number): void {
     if (this.level === Player.LEVEL_THRESHOLDS.length - 1) { return }
 
     this.xp += value
@@ -142,24 +81,24 @@ export default class Player extends Unit {
     if (this.xp > Player.LEVEL_THRESHOLDS[this.level]) { this.setLevel(++this.level) }
   }
 
-  setLevel (value: number) {
+  setLevel (value: number): void {
     this.level = value
     this.hp = this.maxHP()
     this.radius = 2 * Math.sqrt(this.maxHP())
     this.xp = 0
   }
 
-  tryExecuteSkill (index) {
-    if (!this.skills || this.skills.length <= index) { return }
+  tryExecuteSkill (index: number): void {
+    if (this.skills === undefined || this.skills.length <= index) { return }
 
     this.skills[index].execute()
   }
 
-  onCollideWithPlayer (target: GameObject) {
+  onCollideWithPlayer (target: GameObject): void {
 
   }
 
-  onKill (value: GameObject) {
+  onKill (value: GameObject): void {
     super.onKill(value)
 
     this.stats.kills++

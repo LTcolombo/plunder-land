@@ -20,6 +20,8 @@ export class GameObject extends Container {
     this.DEBUG_COLLIDER = new Graphics()
     this.DEBUG_COLLIDER.alpha = 0.3
     this.radius = 10
+
+    this.addChild(this.DEBUG_COLLIDER)
   }
 
   DEBUG_DRAW_COLLIDER (): void {

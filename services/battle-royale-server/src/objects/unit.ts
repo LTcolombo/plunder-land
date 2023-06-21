@@ -11,6 +11,7 @@ export class Unit extends GameObject {
   canAttack: boolean = true
   target: GameObject | undefined
   armor: number = 0
+  weapon: number = 0
 
   constructor (
     objType: number,
@@ -128,17 +129,17 @@ export class Unit extends GameObject {
     super.update(dt)
   }
 
-  maxHP () {
-    return World.config.hp[this.level]
+  maxHP (): number {
+    return World.config.hp
   }
 
-  getDamage () {
-    return World.config.damage[this.level]
+  getDamage (): number {
+    return World.config.damage
   }
 
-  hit (value: number) {
+  hit (value: number): boolean {
     const inflictedDamage = Math.floor(
-      value * (1 - (this.damageReduction || 0) - (this.armor || 0) / 10)
+      value * (1 - this.damageReduction - this.armor / 10)
     )
     this.hp -= inflictedDamage
 

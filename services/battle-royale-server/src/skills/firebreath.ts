@@ -13,7 +13,7 @@ export class FireBreath extends Skill {
     if (!super.execute()) return false
 
     const area = new SectorArea(this.owner, 200, Math.PI / 4)
-    area.setEffect(World.config.fire[this.owner.level], true)
+    area.setEffect(World.config.fire, true)
     World.AREA_EFFECT.push(area)
     const lifetime = 1000
     Multiplayer.Instance.effect(0, this.owner, lifetime)
