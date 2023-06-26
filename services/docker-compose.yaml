@@ -1,0 +1,39 @@
+services:
+  redis:
+    image: redis
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - ./saved/redis:/data
+
+  evm-connector:
+    image: node:18-alpine
+    volumes:
+      - ./evm-connector/:/app
+    restart: always
+    command: sh -c "npm i && npm run dev"
+    working_dir: /app
+    networks:
+      - backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./evm-connector/.env
+
+  battle-royale-server:
+    image: node:18-alpine
+    volumes:
+      - ./battle-royale-server/:/app
+    restart: always
+    command: sh -c "npm i && npm run dev"
+    working_dir: /app
+    networks:
+      - backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./battle-royale-server/.env
+
+networks:
+  backend:

@@ -72,6 +72,14 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":283,"h":137},
 	"sourceSize": {"w":283,"h":137}
 },
+"exit.png":
+{
+	"frame": {"x":320,"y":318,"w":69,"h":81},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":69,"h":81},
+	"sourceSize": {"w":69,"h":81}
+},
 "explosion/expl_1.png":
 {
 	"frame": {"x":250,"y":126,"w":64,"h":64},
@@ -794,7 +802,7 @@
 },
 "player/melee_1/attack_0.png":
 {
-	"frame": {"x":320,"y":318,"w":150,"h":100},
+	"frame": {"x":389,"y":318,"w":150,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":150,"h":100},
@@ -802,7 +810,7 @@
 },
 "player/melee_1/attack_1.png":
 {
-	"frame": {"x":470,"y":318,"w":150,"h":100},
+	"frame": {"x":539,"y":318,"w":150,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":150,"h":100},
@@ -810,7 +818,7 @@
 },
 "player/melee_1/attack_2.png":
 {
-	"frame": {"x":620,"y":318,"w":150,"h":100},
+	"frame": {"x":689,"y":318,"w":150,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":150,"h":100},
@@ -818,7 +826,7 @@
 },
 "player/melee_1/attack_3.png":
 {
-	"frame": {"x":770,"y":318,"w":150,"h":100},
+	"frame": {"x":839,"y":318,"w":150,"h":100},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":150,"h":100},
@@ -1145,6 +1153,6 @@
 	"format": "RGBA8888",
 	"size": {"w":1024,"h":801},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:167e8a71e4cbc4c8dfca0e27a17d569d:b59ff946224a131af8f9161623376ba1:cbce6b53f0f49e0bf15173c25c41f876$"
+	"smartupdate": "$TexturePacker:SmartUpdate:0f0a304a21b03acb139c55c37c5ca15f:9ab7a441f4821c98c542b1a5d0bfbb8b:cbce6b53f0f49e0bf15173c25c41f876$"
 }
 }

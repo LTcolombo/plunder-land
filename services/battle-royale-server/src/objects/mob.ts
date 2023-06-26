@@ -11,7 +11,7 @@ export default class Mob extends Unit {
     this.radius = 30
     this.hp = this.maxHP()
     this.maxVelocity = 100
-    this.xp = 50
+    this.loot = 50
 
     this.addAIRoutine(new GuardPosition(this))
 

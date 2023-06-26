@@ -35,26 +35,24 @@ function startGame () {
 
   // timestamp of each loop
   let previousTick = Date.now()
-  // number of times gameLoop gets called
-  let actualTicks = 0
 
   function gameLoop () {
     const now = Date.now()
 
-    actualTicks++
     if (previousTick + tickLengthMs <= now) {
       const dt = (now - previousTick) / 1000
       previousTick = now
 
       const start = Now()
       world.update(dt)
-      // console.log((Now() - start).toFixed(3), (process.memoryUsage().rss / 1024 / 1024).toFixed(3), (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(3), (process.memoryUsage().heapTotal / 1024 / 1024).toFixed(3));
+      // console.log((Now() - start).toFixed(3), (process.memoryUsage().rss / 1024 / 1024).toFixed(3), (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(3), (process.memoryUsage().heapTotal / 1024 / 1024).toFixed(3))
       multiplayer.flushAll()
-      actualTicks = 0
     }
 
-    if (Date.now() - previousTick < tickLengthMs - 16) {
-      setTimeout(gameLoop)
+    const dt = Date.now() - previousTick
+
+    if (dt < tickLengthMs) {
+      setTimeout(gameLoop, tickLengthMs - dt)
     } else {
       setImmediate(gameLoop)
     }

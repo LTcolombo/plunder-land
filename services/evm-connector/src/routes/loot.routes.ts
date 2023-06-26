@@ -37,7 +37,8 @@ export class LootRoutes {
     // throw somethign if needed
     if (this.contract === undefined && process.env.PRIVATE_KEY !== undefined) {
       const sdk = ThirdwebSDK.fromPrivateKey(process.env.PRIVATE_KEY, AuroraTestnet)
-      this.contract = (await sdk.getContract('0x198543B8f9b83d2477F1eD897834D6890f98e6f1')).erc20
+      const contractBase = await sdk.getContract('0x198543B8f9b83d2477F1eD897834D6890f98e6f1')
+      this.contract = contractBase.erc20
     }
   }
 

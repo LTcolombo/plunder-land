@@ -375,6 +375,21 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">exit.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>35,40,69,81</rect>
+                <key>scale9Paddings</key>
+                <rect>35,40,69,81</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">fireball/fireball_0.png</key>
             <key type="filename">fireball/fireball_1.png</key>
             <key type="filename">fireball/fireball_2.png</key>

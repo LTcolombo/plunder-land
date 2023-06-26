@@ -1,6 +1,7 @@
 import Multiplayer from '../network/multiplayer'
 import { Vector } from '../utils/vector'
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class ObjectType {
   static Obstacle = 1
   static Consumable = 1 << 1
@@ -8,6 +9,7 @@ export class ObjectType {
   static Portal = 1 << 3
   static Throwable = 1 << 4
   static Mob = 1 << 5
+  static Exit = 1 << 6
 }
 
 export class GameObject {
@@ -25,7 +27,7 @@ export class GameObject {
   private _hp: number
   private _impulse: Vector
   private _level: number
-  private _xp: number
+  private _loot: number
   private _tag: number
   private _to: number
   private _radius: number
@@ -40,7 +42,7 @@ export class GameObject {
     'hp',
     'impulse',
     'level',
-    'xp',
+    'loot',
     'tag',
     'to',
     'radius',
@@ -66,7 +68,7 @@ export class GameObject {
       'hp',
       'impulse',
       'level',
-      'xp',
+      'loot',
       'tag',
       'to',
       'radius',
@@ -159,13 +161,13 @@ export class GameObject {
     this.dirtyFields.add('level')
   }
 
-  get xp () {
-    return this._xp
+  get loot () {
+    return this._loot
   }
 
-  set xp (value) {
-    this._xp = value
-    this.dirtyFields.add('xp')
+  set loot (value) {
+    this._loot = value
+    this.dirtyFields.add('loot')
   }
 
   get tag () {
@@ -218,7 +220,7 @@ export class GameObject {
   }
 
   destroy () {
-    this.dirtyFields = new Set('id')
+    this.dirtyFields = new Set(['id', 'hp'])
     Multiplayer.Instance.destroy(this)
     this.destroyed = true
 
@@ -275,7 +277,7 @@ export class GameObject {
         case 'level':
           raw.push(this.getBuffer(value))
           break
-        case 'xp':
+        case 'loot':
           raw.push(this.getBuffer2(value))
           break
         case 'tag':

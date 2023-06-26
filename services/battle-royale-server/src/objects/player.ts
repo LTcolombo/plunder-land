@@ -1,6 +1,6 @@
 import { Unit } from './unit'
 import { Dash } from '../skills/dash'
-import { type GameObject, ObjectType } from './gameobject'
+import { GameObject, ObjectType } from './gameobject'
 import { Vector } from '../utils/vector'
 import Mob from './mob'
 import Boss from './boss'
@@ -9,18 +9,25 @@ import { type Skill } from '../skills/skill'
 import World from './world'
 import Multiplayer from '../network/multiplayer'
 
+export class Stats {
+  kills?: number
+  mobKills?: number
+  bossKills?: number
+  games?: number
+  lootCollected?: number
+  lifeTime?: number
+}
 export default class Player extends Unit {
-  static LEVEL_THRESHOLDS = [100, 300, 750, 1500]
   skills: Skill[]
   createdAt: number
-  stats: { kills: number, mobKills: number, bossKills: number }
+  exited: boolean
+  address: string
 
-  constructor (x: number, y: number, tag: number) {
-    console.log(x, y, tag)
-
+  constructor (x: number, y: number, tag: number, address: string) {
     super(ObjectType.Player, x, y, 0, tag)
+    this.address = address
     this.maxVelocity = 140
-    this.xp = 100
+    this.loot = 0
 
     this.setLevel(1)
 
@@ -28,7 +35,6 @@ export default class Player extends Unit {
     this.skills = [new Dash(this), new MeleeAttack(this)]
 
     this.createdAt = Date.now()
-    this.stats = { kills: 0, mobKills: 0, bossKills: 0 }
 
     Multiplayer.Instance.create(this)
   }
@@ -48,7 +54,7 @@ export default class Player extends Unit {
       const sumWidth = obj.radius + this.radius
       const sqr = obj.position.sub(this.position).getSquareMagnitude()
       if (sqr < sumWidth * sumWidth) {
-        this.addXP(obj.xp)
+        this.addLoot(obj.loot)
         obj.destroy()
         World.CONSUMABLES.splice(i, 1)
         break
@@ -73,19 +79,15 @@ export default class Player extends Unit {
     }
   }
 
-  addXP (value: number): void {
-    if (this.level === Player.LEVEL_THRESHOLDS.length - 1) { return }
-
-    this.xp += value
-
-    if (this.xp > Player.LEVEL_THRESHOLDS[this.level]) { this.setLevel(++this.level) }
+  addLoot (value: number): void {
+    this.loot += value
   }
 
   setLevel (value: number): void {
     this.level = value
     this.hp = this.maxHP()
     this.radius = 2 * Math.sqrt(this.maxHP())
-    this.xp = 0
+    this.loot = 0
   }
 
   tryExecuteSkill (index: number): void {
@@ -101,10 +103,43 @@ export default class Player extends Unit {
   onKill (value: GameObject): void {
     super.onKill(value)
 
-    this.stats.kills++
+    void this.updateKillStats(value)
+  }
 
-    if (value instanceof Boss) { this.stats.bossKills++ }
+  async updateKillStats (value: GameObject): Promise<void> {
+    const stats = new Stats()
 
-    if (value instanceof Mob) { this.stats.mobKills++ }
+    stats.kills = 1
+
+    if (value instanceof Boss) { stats.bossKills = 1 }
+
+    if (value instanceof Mob) { stats.mobKills = 1 }
+
+    console.log('stats', stats)
+    for (const key in stats) {
+      if (stats[key] > 0) {
+        await Multiplayer.Instance.redis.hincrby(`stats-${this.address}`, key, stats[key])
+      }
+    }
+  }
+
+  destroy (): void {
+    super.destroy()
+    void Multiplayer.Instance.reportLoss(this)
+  }
+
+  exit (): void {
+    this.dirtyFields = new Set('id')
+    Multiplayer.Instance.destroy(this)
+    void Multiplayer.Instance.reportWin(this)
+    this.exited = true
+
+    // we need this time out because server sends out all data asynchronously,
+    // and a new objectmight take an id of a destroyed object,
+    // before clients were notified about it.
+    // our server loop is 16ms, thin of a cleaner way to do this.
+    setTimeout(() => {
+      GameObject.FreedIDs.push(this.id)
+    }, 1000)
   }
 }

@@ -17,7 +17,7 @@ export default class Player extends GameObject {
   skills: Array<Defend | Dash | MeleeAttack | RangedAttack>
   shadow: Sprite
   maxVelocity: number | undefined
-  xp: number | undefined
+  loot: number | undefined
   progressBar: ProgressBar | undefined
   impulse = new Vector(0, 0)
   level: number = 0
@@ -76,7 +76,7 @@ export default class Player extends GameObject {
 
   init () {
     this.maxVelocity = 140
-    this.xp = 0
+    this.loot = 0
     this.progressBar = new ProgressBar()
     this.addChild(this.progressBar.graphics)
 
@@ -196,8 +196,10 @@ export default class Player extends GameObject {
   }
 
   destroy (): void {
-    this.animation?.playClip('player/die/die')
-    this.animation?.setDefault(undefined)
+    if (this?.hp <= 0) {
+      this.animation?.playClip('player/die/die')
+      this.animation?.setDefault(undefined)
+    }
 
     if (this.progressBar != null) { this.removeChild(this.progressBar.graphics) }
 

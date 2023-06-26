@@ -9,7 +9,7 @@ export default class Boss extends Mob {
   constructor (x: number, y: number, tag: number) {
     super(x, y, tag)
     this.radius = 40
-    this.xp = 500
+    this.loot = 500
     this.level = 0
 
     this.addAIRoutine(new UseSkillOnTarget(this, new FireBreath(this)))

@@ -4,6 +4,8 @@ import { type Unit } from '../objects/unit'
 import type Player from '../objects/player'
 import World from '../objects/world'
 import axios from 'axios'
+import Redis from 'ioredis'
+import { Stats } from '../objects/player'
 
 class Connection {
   socket: Socket
@@ -21,11 +23,14 @@ export default class Multiplayer {
   static Instance: Multiplayer
   private readonly _connections: Connection[]
   private _buffer: Record<string, { create: Buffer[], create_own: Buffer[], effect: Buffer[], update: Buffer[], destroy: Buffer[] }>
+  redis: Redis
 
   constructor () {
     Multiplayer.Instance = this
     this._connections = []
     this._buffer = {}
+
+    this.redis = new Redis(parseInt(process.env.REDIS_PORT ?? '6379'), process.env.REDIS_HOST ?? 'redis')
   }
 
   onConnect (socket: Socket): void {
@@ -47,15 +52,14 @@ export default class Multiplayer {
       this.onSkill(connection, data)
     })
 
-    const player = World.createPlayer()
+    const player = World.createPlayer(address)
 
-    const response = await axios.get(`http://localhost:8001/gear/equipment/${address}`)
+    const response = await axios.get(`http://evm-connector:8001/gear/equipment/${address}`)
     if (response.status === 200) {
       player.setGear(response.data)
     }
 
     connection.player = player
-    console.log('player', player)
 
     this._buffer[connection.id] = { create: [], create_own: [], effect: [], update: [], destroy: [] }
 
@@ -181,19 +185,49 @@ export default class Multiplayer {
     }
   }
 
+  async reportLoss (player: Player): Promise<void> {
+    try {
+      const response = await axios.post(`http://evm-connector:8001/rewards/payout/${player.address}`, { amount: 0 })
+      if (response.status !== 200) { console.error('reportLoss', response.data) }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  async reportWin (player: Player): Promise<void> {
+    try {
+      const response = await axios.post(`http://evm-connector:8001/rewards/payout/${player.address}`, { amount: player.loot })
+      if (response.status !== 200) { console.error('reportLoss', response.data) }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   destroy (obj): void {
     const data = obj.serialiseBinary(obj.dirtyFields)
     for (const connection of this._connections) {
       if (this._buffer[connection.id] === undefined) this._buffer[connection.id] = { create: [], create_own: [], effect: [], update: [], destroy: [] }
       this._buffer[connection.id].destroy.push(data)
 
-      if (connection.player === obj) {
-        const stats = obj.stats
-        stats.games = 1
-        stats.lifeTime = Math.ceil((Date.now() - obj.createdAt) / 1000)
+      if (connection.player === obj) { void this.updateStats(obj as Player) }
+    }
+
+    obj.dirtyFields.clear()
+  }
+
+  async updateStats (player: Player): Promise<void> {
+    const stats = new Stats()
+
+    stats.lifeTime = Math.ceil((Date.now() - player.createdAt) / 1000)
+    stats.games = 1
+
+    if (player.hp > 0) { stats.lootCollected = player.loot }
+
+    for (const key in stats) {
+      if (stats[key] > 0) {
+        await Multiplayer.Instance.redis.hincrby(`stats-${player.address}`, key, stats[key])
       }
     }
-    obj.dirtyFields.clear()
   }
 
   flushAll (): void {

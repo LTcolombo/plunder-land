@@ -9,6 +9,7 @@ import Mob from './mob'
 import Boss from './boss'
 import { type Unit } from './unit'
 import type Area from '../area/area'
+import Exit from './exit'
 
 export default class World {
   static TAGS = [-1, 0]
@@ -37,14 +38,19 @@ export default class World {
         const to = -1 - tag // -1->0, 0->-1
         World.OBSTACLES.push(new Portal(pos.x, pos.y, to, tag))
       }
+      for (let i = 0; i < 4; i++) {
+        const pos = this.getUnobstructedPosition(40, tag)
+        World.OBSTACLES.push(new Exit(pos.x, pos.y, tag))
+      }
     }
   }
 
-  static createPlayer (): Player {
+  static createPlayer (address: string): Player {
     const player = new Player(
       Random.RangeInt(0, World.mapSize),
       Random.RangeInt(0, World.mapSize),
-      World.TAGS[Random.RangeInt(0, World.TAGS.length)]
+      World.TAGS[Random.RangeInt(0, World.TAGS.length)],
+      address
     )
     World.PLAYERS.push(player)
     return player
@@ -55,6 +61,10 @@ export default class World {
       const player = World.PLAYERS[i]
       if (player.destroyed) {
         this.createLootFrom(player)
+        World.PLAYERS.splice(i, 1)
+        continue
+      }
+      if (player.exited) {
         World.PLAYERS.splice(i, 1)
         continue
       }
@@ -108,15 +118,15 @@ export default class World {
   }
 
   createLootFrom (value) {
-    const itemDropTier = Math.max(50, Math.floor(value.xp / 5))
-    let xpLeft = value.xp
+    const dropTier = Math.max(50, Math.floor(value.loot / 5))
+    let lootLeft = value.loot
 
-    while (xpLeft > 0) {
+    while (lootLeft > 0) {
       const newDropValue = Math.min(
-        xpLeft,
-        Random.RangeInt(0.5 * itemDropTier, 1.5 * itemDropTier)
+        lootLeft,
+        Random.RangeInt(0.5 * dropTier, 1.5 * dropTier)
       )
-      xpLeft -= newDropValue
+      lootLeft -= newDropValue
 
       World.CONSUMABLES.push(
         new Consumable(

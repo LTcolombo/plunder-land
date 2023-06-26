@@ -35,7 +35,7 @@ export class HUD extends Container {
     this.addChild(this.playerStats)
   }
 
-  updateStats (data: { level: number, xp: number }): void {
+  updateStats (data: { level: number, loot: number }): void {
     if (this.playerStats == null) return
     this.playerStats.update(data)
   }

@@ -7,6 +7,7 @@ import { HUD } from './ui/components/hud'
 import { Application, Assets, Point, type Renderer, settings } from 'pixi.js'
 import FontFaceObserver from 'fontfaceobserver'
 import { LoaderOverlay } from './ui/components/loaderoverlay'
+import { Leaderboard } from './ui/components/leaderboard'
 
 const stats = new Stats()
 const app = new Application()
@@ -75,6 +76,8 @@ function onConnect (): void {
   }
   Game.popups = new PopupManager()
   app.stage.addChild(Game.popups)
+
+  app.stage.addChild(new Leaderboard())
 
   Game.loader = new LoaderOverlay()
   app.stage.addChild(Game.loader)

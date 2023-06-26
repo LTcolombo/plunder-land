@@ -32,6 +32,7 @@ import { type Socket } from 'socket.io-client'
 import { type PopupManager } from './ui/popups/popupmanager'
 import { TokenService } from './services/token.service'
 import { ToolKit } from './ui/components/toolkit'
+import { Exit } from './objects/exit'
 
 export class Game extends Container {
   mapSize: number
@@ -149,7 +150,7 @@ export class Game extends Container {
       'hp',
       'impulse',
       'level',
-      'xp',
+      'loot',
       'tag',
       'to',
       'radius',
@@ -199,7 +200,7 @@ export class Game extends Container {
         case 'level':
           value = buffer[offset++]
           break
-        case 'xp':
+        case 'loot':
           value = (buffer[offset++] << 8) + buffer[offset++]
           break
         case 'tag':
@@ -265,6 +266,10 @@ export class Game extends Container {
 
       case 1 << 3:
         obj = new Portal(data.radius, data.to > data.tag)
+        break
+
+      case 1 << 6:
+        obj = new Exit(data.radius)
         break
 
       case 1 << 1:{
@@ -460,9 +465,9 @@ export class Game extends Container {
         if (obj === Game.PLAYER) Game.hud.updateStats(data)
       }
 
-      if (data.xp && data.xp !== obj.xp) {
+      if (data.loot && data.loot !== obj.loot) {
         new TextEffect(
-          `+${data.xp < obj.xp ? data.xp : data.xp - obj.xp}`,
+          `+${data.loot < obj.loot ? data.loot : data.loot - obj.loot}`,
           Game.CONTAINER,
           obj.x,
           obj.y,
@@ -470,7 +475,7 @@ export class Game extends Container {
           'green',
           400
         )
-        obj.xp = data.xp
+        obj.loot = data.loot
 
         if (obj === Game.PLAYER) Game.hud.updateStats(data)
       }
@@ -498,15 +503,17 @@ export class Game extends Container {
   onObjectDestroyed (raw: ArrayBuffer) {
     const data = this.deserialiseBinary(raw)
 
-    if (this.LOOKUP[data.id]) {
-      this.LOOKUP[data.id].destroy()
-      if (this.LOOKUP[data.id] === Game.PLAYER) {
-        new TextEffect('Game Over', this, 0, 0)
+    const obj = this.LOOKUP[data.id]
+    if (obj !== undefined) {
+      if (data.hp !== undefined && obj.setHP) { obj.setHP(data.hp) }
+
+      if (obj === Game.PLAYER) {
+        if (data.hp === 0) { new TextEffect('Game Over', this, 0, 0) } else { new TextEffect('Win!', this, 0, 0, 64, 'green') }
         setTimeout(this.start.bind(this), 2000)
         Game.PLAYER = undefined
         Game.hud.clearGameUI()
       }
-      this.LOOKUP[data.id].destroy()
+      obj.destroy()
     }
   }
 

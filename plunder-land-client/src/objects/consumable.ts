@@ -3,9 +3,9 @@ import { Sprite, Point, type Texture } from 'pixi.js'
 
 export class Consumable extends GameObject {
   shadow: Sprite
-  xp: number
+  loot: number
 
-  constructor (texture: Texture, xp: number, radius: number) {
+  constructor (texture: Texture, loot: number, radius: number) {
     super()
 
     this.radius = radius
@@ -19,7 +19,7 @@ export class Consumable extends GameObject {
     this.main.scale = new Point(targetScale, targetScale)
     this.main.anchor = new Point(0.5, 1)
     this.addChild(this.main)
-    this.xp = xp
+    this.loot = loot
 
     this.main.y += radius
     this.shadow.y += radius
