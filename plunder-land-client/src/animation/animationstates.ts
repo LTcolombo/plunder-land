@@ -54,6 +54,7 @@ export class AnimationStates extends AnimatedSprite {
   }
 
   setDefault (value: string | undefined): void {
+    if (this.defaultClip === value) { return }
     this.defaultClip = value
     this.playDefault()
   }

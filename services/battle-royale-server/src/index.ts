@@ -8,7 +8,7 @@ dotenv.config()
 
 startGame()
 
-function startGame () {
+function startGame (): void {
   const httpserver = http.createServer((req, res) => {
     res.writeHead(req.method === 'GET' && req.url === '/healthcheck' ? 200 : 404)
     res.end()
@@ -31,19 +31,19 @@ function startGame () {
 
   const world = new World(4000)
 
-  const tickLengthMs = 1000 / 10
+  const tickLengthMs = 1000 / 4
 
   // timestamp of each loop
   let previousTick = Date.now()
 
-  function gameLoop () {
+  function gameLoop (): void {
     const now = Date.now()
 
     if (previousTick + tickLengthMs <= now) {
       const dt = (now - previousTick) / 1000
       previousTick = now
 
-      const start = Now()
+      // const start = Now()
       world.update(dt)
       // console.log((Now() - start).toFixed(3), (process.memoryUsage().rss / 1024 / 1024).toFixed(3), (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(3), (process.memoryUsage().heapTotal / 1024 / 1024).toFixed(3))
       multiplayer.flushAll()

@@ -45,7 +45,7 @@ export class Joystick extends Container {
         const data = { x: dx, y: dy }
         // ADD_TO_BENCHMARK(data);
         Game.socket.emit('pointer', data)
-        Game.PLAYER.setDirection(data.x, data.y)
+        // Game.PLAYER.setDirection(data.x, data.y)
       }
 
       event.stopPropagation()

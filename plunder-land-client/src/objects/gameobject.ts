@@ -6,25 +6,26 @@ import { Game } from '../game'
 
 export class GameObject extends Container {
   DEBUG_COLLIDER: Graphics
-  radius: number
-  destroyed = false
-  lastUpdate: number = 0
+  radius: number = 10
+  killed: boolean = false
+  _lastUpdate: number = -1
   tag: number | undefined
   main: Sprite | undefined
 
   direction: Vector | undefined
   animation: AnimationStates | undefined
+  timeSinceUpdate: number = 0
 
   constructor () {
     super()
     this.DEBUG_COLLIDER = new Graphics()
     this.DEBUG_COLLIDER.alpha = 0.3
-    this.radius = 10
 
     this.addChild(this.DEBUG_COLLIDER)
   }
 
   DEBUG_DRAW_COLLIDER (): void {
+    // return
     this.DEBUG_COLLIDER.clear()
     if (this.radius !== undefined) {
       this.DEBUG_COLLIDER.beginFill(0xff00ff)
@@ -69,6 +70,6 @@ export class GameObject extends Container {
       })
       .start()
 
-    this.destroyed = true
+    this.killed = true
   }
 }

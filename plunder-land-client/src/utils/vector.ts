@@ -13,12 +13,16 @@ export class Vector extends Point {
     return Math.atan2(this.y, this.x)
   }
 
-  getSquareMagnitude () {
+  getSquareMagnitude (): number {
     return this.x * this.x + this.y * this.y
   }
 
-  sub (value: Vector) {
+  sub (value: Vector): Vector {
     return new Vector(this.x - value.x, this.y - value.y)
+  }
+
+  subElem (x: number, y: number): Vector {
+    return new Vector(this.x - x, this.y - y)
   }
 
   getAngleTo (value: number) {

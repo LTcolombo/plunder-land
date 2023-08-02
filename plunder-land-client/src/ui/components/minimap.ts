@@ -38,7 +38,7 @@ export class MiniMap extends Graphics {
 
     this.beginFill(0xFF6666)
     for (const mob of Game.MOBS) {
-      if (mob.tag === ownPlayer.tag && !mob.destroyed) {
+      if (mob.tag === ownPlayer.tag && !mob.killed) {
         this.drawCircle(mob.x * this.mapWidth / 4000, mob.y * this.mapHeight / 4000, mob.maxHP > 100 ? 3 : 1)
       }
     }
@@ -46,14 +46,14 @@ export class MiniMap extends Graphics {
 
     this.beginFill(0xFFFF66)
     for (const consumable of Game.CONSUMABLES) {
-      if (consumable.tag === ownPlayer.tag && !consumable.destroyed) {
+      if (consumable.tag === ownPlayer.tag && !consumable.killed) {
         this.drawCircle(consumable.x * this.mapWidth / 4000, consumable.y * this.mapHeight / 4000, 1)
       }
     }
     this.endFill()
 
     for (const player of Game.PLAYERS) {
-      if (player.tag === ownPlayer.tag && !player.destroyed) {
+      if (player.tag === ownPlayer.tag && !player.killed) {
         this.beginFill(player === ownPlayer ? 0x33FF99 : 0xFF00FF)
         this.drawCircle(player.x * this.mapWidth / 4000, player.y * this.mapHeight / 4000, 3)
         this.endFill()

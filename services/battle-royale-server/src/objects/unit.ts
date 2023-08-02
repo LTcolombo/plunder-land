@@ -25,14 +25,14 @@ export class Unit extends GameObject {
     this.impulse = new Vector(0, 0)
   }
 
-  getDirectionTo (target_x, target_y) {
+  getDirectionTo (targetX: number, targetY: number): Vector {
     return new Vector(
-      target_x - this.position.x,
-      target_y - this.position.y
+      targetX - this.position.x,
+      targetY - this.position.y
     ).normalised()
   }
 
-  getNextPos (dt) {
+  getNextPos (dt): Vector {
     if (this.direction.getSquareMagnitude() === 0) return this.position
 
     const translate = this.direction
@@ -42,19 +42,19 @@ export class Unit extends GameObject {
     return this.position.add(translate)
   }
 
-  setDirection (direction_x, direction_y) {
-    this.direction = new Vector(direction_x, direction_y).normalised()
+  setDirection (directionX: number, directionY: number): void {
+    this.direction = new Vector(directionX, directionY).normalised()
   }
 
-  setDirectionTo (target_x, target_y) {
-    this.direction = this.getDirectionTo(target_x, target_y)
+  setDirectionTo (targetX: number, targetY: number): void {
+    this.direction = this.getDirectionTo(targetX, targetY)
   }
 
-  addAIRoutine (value) {
+  addAIRoutine (value: IAIRoutine): void {
     this.routines.push(value)
   }
 
-  update (dt) {
+  update (dt: number): void {
     for (const routine of this.routines) {
       routine.update(dt)
     }
@@ -63,7 +63,7 @@ export class Unit extends GameObject {
       if (this.buffs[i].update(dt)) this.buffs.splice(i, 1)
     }
 
-    if (!this.direction) return
+    if (this.direction == null) return
 
     const pos = this.getNextPos(dt)
     for (const obstacle of World.OBSTACLES) {
@@ -153,12 +153,12 @@ export class Unit extends GameObject {
     return false
   }
 
-  onCollideWithPlayer (target: GameObject) {}
+  onCollideWithPlayer (target: GameObject): void {}
 
-  addBuff (value: Buff) {
+  addBuff (value: Buff): void {
     // dont stack same buffs?
     this.buffs.push(value)
   }
 
-  onKill (obj: GameObject) {}
+  onKill (obj: GameObject): void {}
 }

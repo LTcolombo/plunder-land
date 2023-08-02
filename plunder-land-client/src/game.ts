@@ -195,7 +195,7 @@ export class Game extends Container {
           value = (buffer[offset++] << 8) + buffer[offset++]
           break
         case 'impulse':
-          value = new Vector(buffer[offset++] / 64, buffer[offset++] / 64)
+          value = new Vector(this.overflow(buffer[offset++], 128) / 64, this.overflow(buffer[offset++], 128) / 64)
           break
         case 'level':
           value = buffer[offset++]
@@ -260,8 +260,11 @@ export class Game extends Container {
         break
 
       case 1 << 5:
-        obj = new Mob(data.radius, data.hp)
-        Game.MOBS.push(obj as Mob)
+        obj = new Mob(data.radius)
+
+        const mob = (obj as Mob)
+        mob.setHP(data.hp)
+        Game.MOBS.push(mob)
         break
 
       case 1 << 3:
@@ -287,7 +290,6 @@ export class Game extends Container {
 
       case 1 << 2:{
         const player = new Player()
-        player.init()
         player.setHP(data.hp)
         Game.PLAYERS.push(player)
         obj = player
@@ -306,7 +308,7 @@ export class Game extends Container {
       Game.hud.setupStats()
       Game.hud.setupSkills(Game.PLAYER.skills)
 
-      console.log(data)
+      // console.log(data)
       this.updateLayerVisibility(data.tag)
     }
 
@@ -460,6 +462,8 @@ export class Game extends Container {
 
       if (data.hp && obj.setHP) obj.setHP(data.hp)
 
+      if (data.impulse && obj.impulse) obj.impulse = data.impulse
+
       if (data.level && obj.setLevel) {
         obj.setLevel(data.level)
         if (obj === Game.PLAYER) Game.hud.updateStats(data)
@@ -492,7 +496,9 @@ export class Game extends Container {
         if (obj.DEBUG_DRAW_COLLIDER) obj.DEBUG_DRAW_COLLIDER()
       }
 
-      obj.lastUpdate = Date.now()
+      if (obj._lastUpdate > 0) { obj.timeSinceUpdate = (Date.now() - obj._lastUpdate) / 1000 }
+
+      obj._lastUpdate = Date.now()
     }
   }
 
@@ -518,28 +524,24 @@ export class Game extends Container {
   }
 
   update (dt: number): void {
-    for (const obj of Game.OBSTACLES) {
-      obj.update(dt)
+    // for (const obstacle of Game.OBSTACLES) {
+    //   obstacle.update(dt)
+    // }
+
+    // for (const obj of Game.CONSUMABLES) {
+    //   obj.update(dt)
+    // }
+
+    const noUpdateDelay = (Game.PLAYER != null) ? 1000 : 2000
+
+    for (const player of Game.PLAYERS) {
+      player.visible = player._lastUpdate > Date.now() - noUpdateDelay
+      if (player.visible) { player.update(dt) }
     }
 
-    for (const obj of Game.FIREBALLS) {
-      obj.moveToTarget(dt)
-    }
-
-    for (const obj of Game.CONSUMABLES) {
-      obj.update(dt)
-    }
-
-    const noUpdateDelay = (Game.PLAYER != null) ? 500 : 2000
-
-    for (const obj of Game.PLAYERS) {
-      obj.visible = obj.lastUpdate > Date.now() - noUpdateDelay
-      obj.update(dt)
-    }
-
-    for (const obj of Game.MOBS) {
-      obj.visible = obj.lastUpdate > Date.now() - noUpdateDelay
-      obj.update(dt)
+    for (const mob of Game.MOBS) {
+      mob.visible = mob._lastUpdate > Date.now() - noUpdateDelay
+      if (mob.visible) { mob.update(dt) }
     }
 
     if (Game.PLAYER != null) {

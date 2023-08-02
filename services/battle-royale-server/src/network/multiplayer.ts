@@ -54,10 +54,12 @@ export default class Multiplayer {
 
     const player = World.createPlayer(address)
 
+    /* gear disabled
     const response = await axios.get(`http://evm-connector:8001/gear/equipment/${address}`)
     if (response.status === 200) {
       player.setGear(response.data)
     }
+    */
 
     connection.player = player
 

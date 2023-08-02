@@ -17,6 +17,8 @@ settings.ROUND_PIXELS = true
 
 const font = new FontFaceObserver('Lilliput Steps')
 
+let _pointerDown = false
+
 void font.load().then(function () {
   start()
 })
@@ -85,10 +87,10 @@ function onConnect (): void {
   Game.Instance.start()
 
   app.stage.on('pointermove', updatePointer)
-  app.stage.on('pointerdown', updatePointer)
-  app.stage.on('pointerup', updatePointer)
+  app.stage.on('pointerdown', onPointerDown)
+  app.stage.on('pointerup', onPointerUp)
 
-  Game.simulate = false
+  Game.simulate = true
   window.addEventListener(
     'keydown',
     (e) => {
@@ -103,23 +105,29 @@ function onConnect (): void {
   onResize()
 }
 
+function onPointerDown (event: { data: { buttons: number, global: { x: number, y: number } } }): void {
+  _pointerDown = true
+  updatePointer(event)
+}
+
 function updatePointer (event: { data: { buttons: number, global: { x: number, y: number } } }): void {
   if (Game.PLAYER === undefined) return
 
-  if (event.data.buttons !== 0) {
-    const globalpos = Game.PLAYER.toGlobal(new Point(0, 0))
+  if (!_pointerDown) return
 
-    const data = {
-      x: event.data.global.x - globalpos.x,
-      y: event.data.global.y - globalpos.y
-    }
+  if ((Game.hud.joystick?.pointerDown) ?? false) return
 
-    Game.socket.emit('pointer', data)
-    Game.PLAYER.setDirection(data.x, data.y)
-  } else if (Game.PLAYER.direction != null) {
-    Game.PLAYER.stop()
-    Game.socket.emit('pointer', { x: 0, y: 0 })
-  }
+  const globalpos = Game.PLAYER.toGlobal(new Point(0, 0))
+
+  Game.socket.emit('pointer', {
+    x: event.data.global.x - globalpos.x,
+    y: event.data.global.y - globalpos.y
+  })
+}
+
+function onPointerUp (): void {
+  _pointerDown = false
+  Game.socket.emit('pointer', { x: 0, y: 0 })
 }
 
 let _prevTime = 0

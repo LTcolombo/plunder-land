@@ -29,7 +29,7 @@ export class Leaderboard extends Graphics {
   setData (value: Record<string, { kills: number, mobKills: number, bossKills: number, games: number, lootCollected: number, lifeTime: number }>): void {
     const lines = ['Leaderboard:']
     for (const address in value) {
-      lines.push(`${address.slice(6, 10)}.${address.slice(-2)}: loot: ${value[address].lootCollected.toString().padStart(4, ' ')}; kills: ${value[address].kills}`)
+      lines.push(`${address.slice(-6)}: kills: ${value[address].kills}`)
     }
 
     this.label.text = lines.join('\n')

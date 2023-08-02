@@ -1,10 +1,12 @@
 import { Container, Point, type Sprite, type Text, Texture } from 'pixi.js'
 import { TapHandler } from '../elements/taphandler'
 import AnimationClip from '../../animation/animationclip'
-import { BrowserProvider, ethers, parseEther, type JsonRpcSigner } from 'ethers'
+import { BrowserProvider, ethers, type JsonRpcSigner } from 'ethers'
 import { TokenService } from '../../services/token.service'
 import { ToolKit } from '../components/toolkit'
 import { Game } from '../../game'
+
+const forReal = false
 
 export default class GameEnterPopup extends Container {
   callback: (address: string) => Promise<void>
@@ -13,7 +15,7 @@ export default class GameEnterPopup extends Container {
   title: Text
   balanceValue: Text
   gearContainer: any
-  signer: ethers.JsonRpcSigner
+  signer: ethers.JsonRpcSigner | undefined
 
   constructor (callback: (address: string) => Promise<void>) {
     super()
@@ -69,55 +71,18 @@ export default class GameEnterPopup extends Container {
     void this.checkState()
   }
 
+  genRanHex = (size: number): string => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')
+
   async checkState (): Promise<void> {
-    const eth = (window as any).ethereum
-    const provider = new BrowserProvider(eth)
+    let address = localStorage.getItem('plunderland_test_address')
 
-    Game.loader.enable()
-    const accs = await provider.listAccounts()
-    Game.loader.disable()
-    if (accs.length > 0) {
-      void this.processSigner(accs[0])
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      const connectButton = new TapHandler(this.onConnectClick.bind(this))
-
-      connectButton.addChild(ToolKit.createSprite(Texture.from('UI/elements/button.png'), new Point(0, 0), new Point(1, 1)))
-      connectButton.addChild(ToolKit.createText('connect'))
-
-      connectButton.position = new Point((this.bg.width) / 2, (this.bg.height) - 45)
-      this.container.addChild(connectButton)
+    if (address === null) {
+      address = this.genRanHex(6)
+      localStorage.setItem('plunderland_test_address', address)
     }
-  }
 
-  async onConnectClick (): Promise<void> {
-    const eth = (window as any).ethereum
-    if (eth !== undefined) {
-      const provider = new BrowserProvider(eth)
-
-      await provider.send('eth_requestAccounts', [])
-
-      this.onAccountsChanged(await provider.getSigner())
-    } else {
-      alert('Please Install Metamask!!!')
-    }
-  }
-
-  onAccountsChanged (value: JsonRpcSigner): void {
-    void this.processSigner(value)
-  }
-
-  async processSigner (signer: JsonRpcSigner): Promise<void> {
-    this.signer = signer
-    const address = signer.address
+    this.title.text = address
     TokenService.instance.address = address
-
-    Game.loader.enable()
-
-    this.balanceValue.text = Math.round(await TokenService.instance.getLootBalance())
-    this.title.text = `${address.slice(0, 4)}.${address.slice(-2)}`
-
-    await this.renderGear()
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const connectButton = new TapHandler(this.onStartClick.bind(this))
@@ -127,9 +92,71 @@ export default class GameEnterPopup extends Container {
 
     connectButton.position = new Point((this.bg.width) / 2, (this.bg.height) - 45)
     this.container.addChild(connectButton)
-
-    Game.loader.disable()
   }
+
+  // async checkState (): Promise<void> {
+  //   const eth = (window as any).ethereum
+  //   const provider = new BrowserProvider(eth)
+
+  //   Game.loader.enable()
+  //   const accs = await provider.listAccounts()
+  //   Game.loader.disable()
+  //   if (accs.length > 0) {
+  //     void this.processSigner(accs[0])
+  //   } else {
+  //     // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  //     const connectButton = new TapHandler(this.onConnectClick.bind(this))
+
+  //     connectButton.addChild(ToolKit.createSprite(Texture.from('UI/elements/button.png'), new Point(0, 0), new Point(1, 1)))
+  //     connectButton.addChild(ToolKit.createText('connect'))
+
+  //     connectButton.position = new Point((this.bg.width) / 2, (this.bg.height) - 45)
+  //     this.container.addChild(connectButton)
+  //   }
+  // }
+
+  // async onConnectClick (): Promise<void> {
+  //   const eth = (window as any).ethereum
+  //   if (eth !== undefined) {
+  //     const provider = new BrowserProvider(eth)
+
+  //     await provider.send('eth_requestAccounts', [])
+
+  //     this.onAccountsChanged(await provider.getSigner())
+  //   } else {
+  //     alert('Please Install Metamask!!!')
+  //   }
+  // }
+
+  // onAccountsChanged (value: JsonRpcSigner): void {
+  //   void this.processSigner(value)
+  // }
+
+  // async processSigner (signer: JsonRpcSigner): Promise<void> {
+  //   this.signer = signer
+  //   const address = signer.address
+  //   TokenService.instance.address = address
+
+  //   if (forReal) {
+  //     Game.loader.enable()
+
+  //     this.balanceValue.text = Math.round(await TokenService.instance.getLootBalance())
+  //     this.title.text = `${address.slice(0, 4)}.${address.slice(-2)}`
+
+  //     await this.renderGear()
+
+  //     Game.loader.disable()
+  //   }
+
+  //   // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  //   const connectButton = new TapHandler(this.onStartClick.bind(this))
+
+  //   connectButton.addChild(ToolKit.createSprite(Texture.from('UI/elements/button.png'), new Point(0, 0), new Point(1, 1)))
+  //   connectButton.addChild(ToolKit.createText('start'))
+
+  //   connectButton.position = new Point((this.bg.width) / 2, (this.bg.height) - 45)
+  //   this.container.addChild(connectButton)
+  // }
 
   async renderGear (): Promise<void> {
     // ultra primitive VBOX thing
@@ -159,20 +186,18 @@ export default class GameEnterPopup extends Container {
 
   async onStartClick (): Promise<void> {
     if (TokenService.instance.address !== undefined) {
-      Game.loader.enable()
-      // const feeContract = new ethers.Contract('0xdf67902639E7E94b6E3526478a9d699B1Fb4aFD2', ['function payFee() payable public'], this.signer)
+      if (forReal) {
+        Game.loader.enable()
 
-      // // Call the function
-      // const tx = await feeContract.payFee()
+        const feeContract = new ethers.Contract('0x198543B8f9b83d2477F1eD897834D6890f98e6f1', ['function transfer(address to, uint256 value) external returns (bool)'], this.signer)
 
-      const feeContract = new ethers.Contract('0x198543B8f9b83d2477F1eD897834D6890f98e6f1', ['function transfer(address to, uint256 value) external returns (bool)'], this.signer)
+        // Call the function
+        const tx = await feeContract.transfer('0x2Bcb172eFfa7C442a1B9FA7658975052E691aAB6', '3000000000000000000')
 
-      // Call the function
-      const tx = await feeContract.transfer('0x2Bcb172eFfa7C442a1B9FA7658975052E691aAB6', '3000000000000000000')
-
-      console.log(tx)
-      // console.log(await tx.wait())
-      Game.loader.disable()
+        console.log(tx)
+        // console.log(await tx.wait())
+        Game.loader.disable()
+      }
 
       void this.callback(TokenService.instance.address)
     }

@@ -131,7 +131,7 @@ export class GameObject {
 
   set direction (value) {
     this._direction = value
-    this.dirtyFields.add('direction')
+    // this.dirtyFields.add('direction')
   }
 
   get hp () {
@@ -149,7 +149,7 @@ export class GameObject {
 
   set impulse (value) {
     this._impulse = value
-    this.dirtyFields.add('impulse')
+    // this.dirtyFields.add('impulse')
   }
 
   get level () {
@@ -233,7 +233,7 @@ export class GameObject {
     }, 1000)
   }
 
-  onCollide (target) {}
+  onCollide (target) { }
 
   serialise (fields: Set<string>) {
     if (!fields?.size) return null
@@ -266,7 +266,7 @@ export class GameObject {
           raw.push(this.getBufferVec2(value))
           break
         case 'direction':
-		  raw.push(this.getBufferVec(value.multiply(127)))
+          raw.push(this.getBufferVec(value.multiply(127)))
           break
         case 'hp':
           raw.push(this.getBuffer2(value))
