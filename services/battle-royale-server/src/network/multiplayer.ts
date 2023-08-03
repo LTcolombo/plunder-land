@@ -22,13 +22,12 @@ export default class Multiplayer {
 
   static Instance: Multiplayer
   private readonly _connections: Connection[]
-  private _buffer: Record<string, { create: Buffer[], create_own: Buffer[], effect: Buffer[], update: Buffer[], destroy: Buffer[] }>
+  private _buffer: Record<string, { create: Buffer[], create_own: Buffer[], effect: Buffer[], update: Buffer[], destroy: Buffer[] }> = {}
   redis: Redis
 
   constructor () {
     Multiplayer.Instance = this
     this._connections = []
-    this._buffer = {}
 
     this.redis = new Redis(parseInt(process.env.REDIS_PORT ?? '6379'), process.env.REDIS_HOST ?? 'redis')
   }
@@ -136,7 +135,7 @@ export default class Multiplayer {
           obj.dirtyFields.add('id')
         }
 
-        if (connection.pendingObjectIDs?.[obj.id]) {
+        if (connection.pendingObjectIDs?.[obj.id] ?? false) {
           if (fullData == null) {
             fullData = obj.serialiseBinary(
               connection.player === obj ? obj.allFieldsOwn : obj.allFields
@@ -236,8 +235,15 @@ export default class Multiplayer {
     for (const connection of this._connections) this.flush(connection)
   }
 
-  onDisconnect (connection: Connection): void {
-    if (connection.player != null) connection.player.destroy()
-    this._connections.splice(this._connections.indexOf(connection), 1)
+  onDisconnect (socket: Socket): void {
+    for (let i = 0; i < this._connections.length; i++) {
+      const connection = this._connections[i]
+
+      if (connection.socket === socket) {
+        if (connection.player != null) connection.player.destroy()
+        this._connections.splice(i, 1)
+        break
+      }
+    }
   }
 }
