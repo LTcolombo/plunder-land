@@ -33,21 +33,21 @@ export class GameObject {
   private _radius: number
   private _lifetime: number
   private _maxVelocity: number
+  private _name: string
 
   static fieldOrder: string[] = [
     'id',
     'type',
     'position',
-    'direction',
     'hp',
-    'impulse',
     'level',
     'loot',
     'tag',
     'to',
     'radius',
     'lifetime',
-    'maxVelocity'
+    'maxVelocity',
+    'name'
   ]
 
   constructor (
@@ -64,30 +64,25 @@ export class GameObject {
       'id',
       'type',
       'position',
-      'direction',
       'hp',
-      'impulse',
       'level',
       'loot',
       'tag',
       'to',
       'radius',
-      'lifetime',
-      'maxVelocity'
+      'lifetime'
     ])
     this.allFields = new Set([
       'id',
       'type',
       'position',
-      'direction',
       'hp',
-      'impulse',
       'level',
       'tag',
       'to',
       'radius',
       'lifetime',
-      'maxVelocity'
+      'name'
     ])
 
     if (radius) {
@@ -215,6 +210,15 @@ export class GameObject {
     // this.dirtyFields.add('maxVelocity')
   }
 
+  get name () {
+    return this._name
+  }
+
+  set name (value) {
+    this._name = value
+    this.dirtyFields.add('name')
+  }
+
   update (dt: number) {
     Multiplayer.Instance.update(this)
   }
@@ -295,6 +299,8 @@ export class GameObject {
         case 'maxVelocity':
           raw.push(this.getBuffer(Math.floor(value / 10)))
           break
+        case 'name':
+          raw.push(Buffer.from(value), Buffer.alloc(1)); break
       }
     }
     return Buffer.concat(raw)

@@ -26,6 +26,7 @@ export default class Player extends Unit {
   constructor (x: number, y: number, tag: number, address: string) {
     super(ObjectType.Player, x, y, 0, tag)
     this.address = address
+    this.name = address
     this.maxVelocity = 140
     this.loot = 0
 

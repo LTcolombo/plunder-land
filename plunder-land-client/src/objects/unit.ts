@@ -132,7 +132,6 @@ export default class Unit extends GameObject {
   setMoveTarget (value: Vector): void {
     if ((this.timeSinceUpdate) > 0) {
       this._velocity = value.subElem(this.x, this.y).getMagnitude() / (this.timeSinceUpdate)
-      if (this.constructor.name === 'Player') { console.log(value.subElem(this.x, this.y).getMagnitude(), this.timeSinceUpdate, this._velocity) }
     }
     this.moveTarget = value
   }

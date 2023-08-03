@@ -146,9 +146,7 @@ export class Game extends Container {
       'id',
       'type',
       'position',
-      'direction',
       'hp',
-      'impulse',
       'level',
       'loot',
       'tag',
@@ -156,21 +154,17 @@ export class Game extends Container {
       'radius',
       'lifetime',
       'maxVelocity',
-      'name',
-      'race',
-      'portrait'
+      'name'
     ]
 
     const buffer = new Uint8Array(raw)
     Game.socketBytes += buffer.length
-    const data: Record<string, number | Vector> = {}
+    const data: Record<string, number | Vector | string> = {}
     let value
     let offset = 0
     while (offset < buffer.length) {
       const keyIndex = buffer[offset++]
       const key = allFields[keyIndex]
-
-      // console.log(offset, key, keyIndex);
 
       switch (key) {
         case 'id':
@@ -183,12 +177,6 @@ export class Game extends Container {
           value = new Vector(
             (buffer[offset++] << 8) + buffer[offset++],
             (buffer[offset++] << 8) + buffer[offset++]
-          )
-          break
-        case 'direction':
-          value = new Vector(
-            this.overflow(buffer[offset++], 128) / 128,
-            this.overflow(buffer[offset++], 128) / 128
           )
           break
         case 'hp':
@@ -215,8 +203,15 @@ export class Game extends Container {
         case 'lifetime':
           value = buffer[offset++] * 100
           break
-        case 'maxVelocity':
-          value = buffer[offset++] * 10
+        case 'name':
+          value = ''
+
+          while (true) {
+            const code = buffer[offset++]
+            if (code === 0) { break }
+            value += String.fromCharCode(code)
+          }
+
           break
       }
 
@@ -308,7 +303,6 @@ export class Game extends Container {
       Game.hud.setupStats()
       Game.hud.setupSkills(Game.PLAYER.skills)
 
-      // console.log(data)
       this.updateLayerVisibility(data.tag)
     }
 
@@ -440,8 +434,6 @@ export class Game extends Container {
   onObjectsUpdated (data: ArrayBuffer[]) {
     // ADD_TO_BENCHMARK(data);
 
-    console.log('================')
-
     for (const entry of data) this.onObjectUpdated(entry)
   }
 
@@ -449,8 +441,6 @@ export class Game extends Container {
     const data = this.deserialiseBinary(raw)
 
     const obj = this.LOOKUP[data.id]
-
-    if (obj === Game.PLAYER) { console.log(Date.now()) }
 
     if (obj) {
       // TODO generalise unit, move this into setData of relative descendant
