@@ -1,5 +1,6 @@
-import { Container, Graphics, Point } from 'pixi.js'
+import { Container, Graphics, type IDestroyOptions, Point } from 'pixi.js'
 import { Game } from '../../game'
+import { Vector } from '../../utils/vector'
 
 export class Joystick extends Container {
   radius: number
@@ -36,37 +37,46 @@ export class Joystick extends Container {
 
   // figure out the event type
   onPointerMove (event: { data: { global: { x: number, y: number } }, stopPropagation: () => void }): void {
+    if (Game.PLAYER === null) return
+
     if (this.pointerDown) {
       const global = this.toGlobal(new Point(0, 0))
       const dx = event.data.global.x - global.x
       const dy = event.data.global.y - global.y
 
-      if (Game.PLAYER != null) {
-        const data = { x: dx, y: dy }
-        // ADD_TO_BENCHMARK(data);
-        Game.socket.emit('pointer', data)
-        // Game.PLAYER.setDirection(data.x, data.y)
-      }
+      const data = new Vector(dx, dy).normalised()
+      Game.socket.emit('pointer', data)
+
+      const dir = data.multiply(this.radius)
+      const point = data.rotateBy(Math.PI / 2).multiply(this.radius / 4)
+
+      this.fore
+        .clear()
+        .moveTo(dir.x, dir.y)
+        .beginFill(0)
+        .lineTo(point.x, point.y)
+        .arc(0, 0, this.radius / 4, point.getAngle(), point.getAngle() + Math.PI)
+        .closePath()
+        .endFill()
 
       event.stopPropagation()
     }
-
-    if ((Game.PLAYER?.direction) == null) { return }
-
-    const dir = Game.PLAYER.direction.multiply(this.radius)
-    const point = Game.PLAYER.direction.rotateBy(Math.PI / 2).multiply(this.radius / 4)
-
-    this.fore
-      .clear()
-      .moveTo(dir.x, dir.y)
-      .beginFill(0)
-      .lineTo(point.x, point.y)
-      .arc(0, 0, this.radius / 4, point.getAngle(), point.getAngle() + Math.PI)
-      .closePath()
-      .endFill()
   }
 
   onPointerUp (): void {
     this.pointerDown = false
+
+    this.fore
+      .clear()
+      .beginFill(0)
+      .drawCircle(0, 0, this.radius / 4)
+      .endFill()
+  }
+
+  destroy (options?: boolean | IDestroyOptions | undefined): void {
+    this.off('pointerdown')
+    this.off('pointermove')
+    this.off('pointerup')
+    this.off('mouseupoutside')
   }
 }

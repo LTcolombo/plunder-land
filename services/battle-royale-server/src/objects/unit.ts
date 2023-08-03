@@ -149,7 +149,6 @@ export class Unit extends GameObject {
       return true
     }
 
-    super.update(0)
     return false
   }
 

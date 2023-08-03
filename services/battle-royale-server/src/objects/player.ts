@@ -54,7 +54,8 @@ export default class Player extends Unit {
       const sumWidth = obj.radius + this.radius
       const sqr = obj.position.sub(this.position).getSquareMagnitude()
       if (sqr < sumWidth * sumWidth) {
-        this.addLoot(obj.loot)
+        this.hp += (obj.loot)
+        if (this.hp > this.maxHP()) { this.hp = this.maxHP() }
         obj.destroy()
         World.CONSUMABLES.splice(i, 1)
         break

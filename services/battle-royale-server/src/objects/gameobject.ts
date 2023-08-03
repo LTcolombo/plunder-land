@@ -212,7 +212,7 @@ export class GameObject {
 
   set maxVelocity (value) {
     this._maxVelocity = value
-    this.dirtyFields.add('maxVelocity')
+    // this.dirtyFields.add('maxVelocity')
   }
 
   update (dt: number) {

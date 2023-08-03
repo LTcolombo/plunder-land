@@ -103,14 +103,14 @@ export default class World {
     }
 
     // fill the map with NPC's
-    if (World.MOBS.length < 300) {
+    if (World.MOBS.length < 50) {
       const tag = World.TAGS[Random.RangeInt(0, World.TAGS.length)]
       const pos = this.getUnobstructedPosition(40, tag)
       World.MOBS.push(new Mob(pos.x, pos.y, tag))
     }
 
     // fill the map with crazy bosses
-    if (World.MOBS.length < 50) {
+    if (World.MOBS.length < 10) {
       const tag = World.TAGS[Random.RangeInt(0, World.TAGS.length)]
       const pos = this.getUnobstructedPosition(40, tag)
       World.MOBS.push(new Boss(pos.x, pos.y, tag))
