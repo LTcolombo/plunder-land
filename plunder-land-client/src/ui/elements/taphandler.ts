@@ -22,7 +22,7 @@ export class TapHandler extends Container {
 
     this.callback = callback
 
-    this.on('pointerdown', this.onPointerDown.bind(this))
+    this.on('pointerup', this.onPointerDown.bind(this))
   }
 
   onPointerDown (e: { data: { button: number, pointerType: string } }): void {

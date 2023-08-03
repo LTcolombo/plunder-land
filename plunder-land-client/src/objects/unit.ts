@@ -3,6 +3,7 @@ import { type Texture, Sprite, Point, ColorMatrixFilter } from 'pixi.js'
 import { type Vector } from '../utils/vector'
 import { GameObject } from './gameobject'
 import { TextEffect } from '../ui/elements/texteffect'
+import Player from './player'
 
 export default class Unit extends GameObject {
   shadow: Sprite | undefined
@@ -63,8 +64,6 @@ export default class Unit extends GameObject {
         this.progressBar.graphics.x = -this.progressBar.width / 2
         this.progressBar.graphics.y = this.radius + 5
       }
-
-      console.log(this.constructor.name, this.hp, this.maxHP, value)
     }
 
     if (this.hp === value) return
@@ -131,7 +130,10 @@ export default class Unit extends GameObject {
   }
 
   setMoveTarget (value: Vector): void {
-    if ((this.timeSinceUpdate) > 0) { this._velocity = value.subElem(this.x, this.y).getMagnitude() / (this.timeSinceUpdate) }
+    if ((this.timeSinceUpdate) > 0) {
+      this._velocity = value.subElem(this.x, this.y).getMagnitude() / (this.timeSinceUpdate)
+      if (this.constructor.name === 'Player') { console.log(value.subElem(this.x, this.y).getMagnitude(), this.timeSinceUpdate, this._velocity) }
+    }
     this.moveTarget = value
   }
 }

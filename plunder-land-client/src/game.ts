@@ -440,6 +440,8 @@ export class Game extends Container {
   onObjectsUpdated (data: ArrayBuffer[]) {
     // ADD_TO_BENCHMARK(data);
 
+    console.log('================')
+
     for (const entry of data) this.onObjectUpdated(entry)
   }
 
@@ -447,6 +449,9 @@ export class Game extends Container {
     const data = this.deserialiseBinary(raw)
 
     const obj = this.LOOKUP[data.id]
+
+    if (obj === Game.PLAYER) { console.log(Date.now()) }
+
     if (obj) {
       // TODO generalise unit, move this into setData of relative descendant
       if (data.direction) obj.setDirection(data.direction.x, data.direction.y)
