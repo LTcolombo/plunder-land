@@ -31,7 +31,7 @@ function startGame (): void {
 
   const world = new World(4000)
 
-  const tickLengthMs = 1000 / 10
+  const tickLengthMs = 500
 
   // timestamp of each loop
   let previousTick = Date.now()
