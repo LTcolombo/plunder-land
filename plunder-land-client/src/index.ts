@@ -9,6 +9,26 @@ import FontFaceObserver from 'fontfaceobserver'
 import { LoaderOverlay } from './ui/components/loaderoverlay'
 import { Leaderboard } from './ui/components/leaderboard'
 
+import firebase from 'firebase'
+
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: 'AIzaSyAour2Kj7Ndc1QDamwRCHQ1h1vIQBiFRF4',
+  authDomain: 'plunderland.firebaseapp.com',
+  projectId: 'plunderland',
+  storageBucket: 'plunderland.appspot.com',
+  messagingSenderId: '98543229635',
+  appId: '1:98543229635:web:bd34f12c66d8b0b88c2076',
+  measurementId: 'G-LYBPE5YNNW'
+}
+
+// Initialize Firebase
+firebase.analytics(firebase.initializeApp(firebaseConfig))
+
 const stats = new Stats()
 const app = new Application()
 const socketPanel = stats.addPanel(new Stats.Panel('b/s', '#ff8', '#221'))
@@ -42,9 +62,10 @@ function start (): void {
 }
 
 function setup (): void {
-  const host = 'localhost:8000'
+  const host = 'https://socket.plunderland.io:8000'
 
   let url = `${window.location.protocol}//${host}`
+  url = host
 
   if (window.location.href.lastIndexOf('?') > 0) {
     url += window.location.href.substring(
